@@ -9,19 +9,19 @@ import the data
 need to change the path
 '''
 from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("MNIST_data/")
+mnist = input_data.read_data_sets("MNIST/")
 
 def lrelu(x):
     return tf.maximun(0.2*x, x)
 
 def discriminator(images):
     d_conv1 = slim.conv2d(images, 32, [5,5], rate=1, activation_fn=lrelu, scope='d_conv1')
-    d_pool1 = slim.max_pool2d(conv1, [2,2], padding='SAME', scope='d_pool1')
-    d_conv2 = slim.conv2d(pool1, 64, [3,3], rate=1, activation_fn=lrelu, scope='d_conv2')
-    d_pool2 = slim.max_pool2d(conv2, [2,2], padding='SAME', scope='d_pool2')
-    d_flatten = slim.flatten(pool2)
-    d_fc1 = slim.fully_connected(flatten, 1024, activation_fn=lrelu, scope='d_fc1')
-    output = slim.fully_connected(fc1, 1, activation_fn=None, scope='d_output')
+    d_pool1 = slim.max_pool2d(d_conv1, [2,2], padding='SAME', scope='d_pool1')
+    d_conv2 = slim.conv2d(d_pool1, 64, [3,3], rate=1, activation_fn=lrelu, scope='d_conv2')
+    d_pool2 = slim.max_pool2d(d_conv2, [2,2], padding='SAME', scope='d_pool2')
+    d_flatten = slim.flatten(d_pool2)
+    d_fc1 = slim.fully_connected(d_flatten, 1024, activation_fn=lrelu, scope='d_fc1')
+    output = slim.fully_connected(d_fc1, 1, activation_fn=None, scope='d_output')
     return output
 
 def generator(z, batch_size, z_dim):
@@ -30,9 +30,9 @@ def generator(z, batch_size, z_dim):
     g1 = tf.contrib.layers.batch_norm(g_fc1_reshape, epsilon=1e-5, scope='g_bn1')
     g1 = lrelu(g1)
 
-    g_conv1 = slim.conv2d(g1, int(z_dim/2), [3,3], rate=1, activation_fn=lrelu, scope='g_conv1'])
-    g_conv2 = slim.conv2d(g2, int(z_dim/4), [3,3], rate=1, activation_fn=lrelu, scope='g_conv2'])
-    g_conv3 = slim.conv2d(g2, 1, [1,1], strides = [1,2,2,1], rate=1, activation_fn=None, scope='g_conv3'])
+    g_conv1 = slim.conv2d(g1, int(z_dim/2), [3,3], rate=1, activation_fn=lrelu, scope='g_conv1')
+    g_conv2 = slim.conv2d(g_conv1, int(z_dim/4), [3,3], rate=1, activation_fn=lrelu, scope='g_conv2')
+    g_conv3 = slim.conv2d(g_conv2, 1, [1,1], strides = [1,2,2,1], rate=1, activation_fn=None, scope='g_conv3')
 
     return tf.sigmoid(g_conv3)
 
@@ -48,7 +48,7 @@ def plot_generated_image():
         generator_image = generator_image.reshape([28,28])
         plt.imshow(generator_image, cmap="Greys")
 
-
+z_dimensions = 100
 tf.reset_default_graph()
 batch_size = 50
 
@@ -95,10 +95,12 @@ images_for_tensorboard = generator(z_placeholder, batch_size, z_dimensions)
 tf.summary.image('Generated_images', images_for_tensorboard, 5)
 merged = tf.summary.merge_all()
 logdir = "tensorboard/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + "/"
+
+sess = tf.Session()
 writer = tf.summary.FileWriter(logdir, sess.graph)
 
 
-sess = tf.Session()
+
 sess.run(tf.global_variables_initializer())
 
 # Pre-train discriminator
