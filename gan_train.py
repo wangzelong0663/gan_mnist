@@ -12,9 +12,11 @@ from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST/")
 
 def lrelu(x):
-    return tf.maximun(0.2*x, x)
+    return tf.maximum(0.2*x, x)
 
-def discriminator(images):
+def discriminator(images, reuse=False):
+    if (reuse):
+        tf.get_variable_scope().reuse_variables()
     d_conv1 = slim.conv2d(images, 32, [5,5], rate=1, activation_fn=lrelu, scope='d_conv1')
     d_pool1 = slim.max_pool2d(d_conv1, [2,2], padding='SAME', scope='d_pool1')
     d_conv2 = slim.conv2d(d_pool1, 64, [3,3], rate=1, activation_fn=lrelu, scope='d_conv2')
@@ -32,7 +34,7 @@ def generator(z, batch_size, z_dim):
 
     g_conv1 = slim.conv2d(g1, int(z_dim/2), [3,3], rate=1, activation_fn=lrelu, scope='g_conv1')
     g_conv2 = slim.conv2d(g_conv1, int(z_dim/4), [3,3], rate=1, activation_fn=lrelu, scope='g_conv2')
-    g_conv3 = slim.conv2d(g_conv2, 1, [1,1], strides = [1,2,2,1], rate=1, activation_fn=None, scope='g_conv3')
+    g_conv3 = slim.conv2d(g_conv2, 1, [1,1], stride = 2, rate=1, activation_fn=None, scope='g_conv3')
 
     return tf.sigmoid(g_conv3)
 
@@ -57,28 +59,29 @@ z_placeholder = tf.placeholder(tf.float32, [None, z_dimensions], name='z_placeho
 
 x_placeholder = tf.placeholder(tf.float32, shape = [None,28,28,1], name='x_placeholder')
 # x_placeholder is for feeding input images to the discriminator
+with tf.variable_scope("for_reuse_scope"):
+    Gz = generator(z_placeholder, batch_size, z_dimensions)
+    # Gz holds the generated images
+    
+    Dx = discriminator(x_placeholder) 
+    # Dx will hold discriminator prediction probabilities
+    # for the real MNIST images
+    
+    Dg = discriminator(Gz, reuse=True)
+    # Dg will hold discriminator prediction probabilities for generated images
 
-Gz = generator(z_placeholder, batch_size, z_dimensions)
-# Gz holds the generated images
+    d_loss_real = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=Dx, labels=tf.ones_like(Dx)))
+    d_loss_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=Dg, labels=tf.zeros_like(Dg)))
+    g_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=Dg, labels=tf.ones_like(Dg)))
+    
+    tvars = tf.trainable_variables()
+    
+    d_vars = [var for var in tvars if 'd_' in var.name]
+    g_vars = [var for var in tvars if 'g_' in var.name]
+    
+    print([v.name for v in d_vars])
+    print([v.name for v in g_vars])
 
-Dx = discriminator(x_placeholder) 
-# Dx will hold discriminator prediction probabilities
-# for the real MNIST images
-
-Dg = discriminator(Gz)
-# Dg will hold discriminator prediction probabilities for generated images
-
-d_loss_real = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(Dx, tf.ones_like(Dx)))
-d_loss_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(Dg, tf.zeros_like(Dg)))
-g_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(Dg, tf.ones_like(Dg)))
-
-tvars = tf.trainable_variables()
-
-d_vars = [var for var in tvars if 'd_' in var.name]
-g_vars = [var for var in tvars if 'g_' in var.name]
-
-print([v.name for v in d_vars])
-print([v.name for v in g_vars])
 
 # Train the discriminator
 d_trainer_fake = tf.train.AdamOptimizer(0.0003).minimize(d_loss_fake, var_list=d_vars)
