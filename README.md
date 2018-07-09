@@ -10,7 +10,7 @@ python gan_train.py
 ### Requirement
 Required python (version 3.5) libraries: Tensorflow (>=1.1) + matplotlib + Numpy.
 
-### The architecture network 
+### The architecture of the network 
 ![gan model](gan1.jpg)<br>
 ![D model](gan2.bmp)<br>
 ![G model](gan3.jpg)
