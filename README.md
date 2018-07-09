@@ -1,7 +1,7 @@
 # Using DCGAN to generate MNIST image
 This is the file that forks the github [jonbruner](https://github.com/jonbruner/generative-adversarial-networks). We change the network using Up-sample which is like the U-net in the discriminator, and the BN is used in the discriminator part. The RELU is replaced by the LeakyReLU.
 
-## How th use
+## How to use
 
 ```shell
 python gan_train.py
