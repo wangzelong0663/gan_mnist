@@ -15,5 +15,5 @@ Required python (version 3.5) libraries: Tensorflow (>=1.1) + matplotlib + Numpy
 ![D model](gan2.bmp)<br>
 ![G model](gan3.jpg)
 
-### The finaly generative images
+### The finally generative images
 ![images](1.png)<br>
