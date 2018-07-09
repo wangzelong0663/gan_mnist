@@ -13,7 +13,7 @@ Required python (version 3.5) libraries: Tensorflow (>=1.1) + matplotlib + Numpy
 ### The architecture network 
 ![gan model](gan1.jpg)<br>
 ![D model](gan2.bmp)<br>
-![G model](gan1.jpg)
+![G model](gan3.jpg)
 
 ### The finaly generative images
 ![images](1.png)<br>
