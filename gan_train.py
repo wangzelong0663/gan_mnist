@@ -48,7 +48,7 @@ def generator(z, batch_size, z_dim):
     g1_up = tf.contrib.layers.batch_norm(g1_up, epsilon=1e-5, scope='g_bn2')
     g1_up = lrelu(g1_up)
     g2_up = upsample_and_concat(g1_up, 2*size, 1, int(dims/2), batch_size, name='g_up_covn2')
-    g1_up = tf.contrib.layers.batch_norm(g2_up, epsilon=1e-5, scope='g_bn3')
+    g2_up = tf.contrib.layers.batch_norm(g2_up, epsilon=1e-5, scope='g_bn3')
     g2_up = lrelu(g2_up)
     return tf.sigmoid(g2_up)
 
